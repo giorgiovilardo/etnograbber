@@ -1,0 +1,5 @@
+base_api_url = 'https://api.soundcloud.com/tracks'
+base_auth_url = 'https://api.soundcloud.com/oauth2/token'
+client_id = ''
+client_secret = ''
+token_generator_fallback = ''
