@@ -1,11 +1,14 @@
-default:
-    just fmt
+default: fmt
 
 fmt:
     go fmt
+    go vet
 
 run:
     go run .
+
+test:
+    go test
 
 build:
     go build -o bin/etnograbber
