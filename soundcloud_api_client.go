@@ -15,16 +15,6 @@ import (
 const AuthApiRateLimitedStatus = http.StatusTooManyRequests
 const AuthApiSuccessStatus = http.StatusOK
 
-type SoundcloudApi interface {
-	Auth() ([]byte, error)
-	Renew(t Token) ([]byte, error)
-}
-
-type TrackRepository interface {
-	GetTrackData(t Token, id int) (map[string]interface{}, error)
-	GetTrack(t Token, id int) (io.Reader, error)
-}
-
 type HttpSoundcloudApi struct {
 	c Config
 }

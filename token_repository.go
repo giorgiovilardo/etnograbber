@@ -4,10 +4,6 @@ import (
 	"time"
 )
 
-type TokenRepository interface {
-	GetToken() (Token, error)
-}
-
 type HttpTokenRepository struct {
 	currentToken Token
 	sc           SoundcloudApi
