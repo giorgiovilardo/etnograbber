@@ -21,7 +21,7 @@ func main() {
 	e.GET("/health", HealthHandler)
 	e.GET("/:trackId", TrackHandler)
 	e.GET("/:trackId/stream", StreamTrackHandler)
-	e.Logger.Fatal(e.Start(":1323"))
+	e.Logger.Fatal(e.Start(":5000"))
 }
 
 func loadTokenRepository(t TokenRepository) echo.MiddlewareFunc {
