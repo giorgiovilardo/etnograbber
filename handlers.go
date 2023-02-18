@@ -16,21 +16,21 @@ func TrackHandler(c echo.Context) error {
 	token, err := c.Get("tokenRepository").(TokenRepository).GetToken()
 	if err != nil {
 		return c.JSON(http.StatusServiceUnavailable, map[string]string{
-			"error": err.Error(),
+			"error": "token not available",
 		})
 	}
 
 	trackId, err := strconv.ParseInt(c.Param("trackId"), 10, 64)
 	if err != nil {
 		return c.JSON(http.StatusServiceUnavailable, map[string]string{
-			"error": err.Error(),
+			"error": "trackId not a number",
 		})
 	}
 
 	track, err := c.Get("trackRepository").(TrackRepository).GetTrackData(token, int(trackId))
 	if err != nil {
 		return c.JSON(http.StatusServiceUnavailable, map[string]string{
-			"error": err.Error(),
+			"error": "trackData not available",
 		})
 	}
 
@@ -41,21 +41,21 @@ func StreamTrackHandler(c echo.Context) error {
 	token, err := c.Get("tokenRepository").(TokenRepository).GetToken()
 	if err != nil {
 		return c.JSON(http.StatusServiceUnavailable, map[string]string{
-			"error": err.Error(),
+			"error": "token not available",
 		})
 	}
 
 	trackId, err := strconv.ParseInt(c.Param("trackId"), 10, 64)
 	if err != nil {
 		return c.JSON(http.StatusServiceUnavailable, map[string]string{
-			"error": err.Error(),
+			"error": "trackId not a number",
 		})
 	}
 
 	trackReader, err := c.Get("trackRepository").(TrackRepository).GetTrack(token, int(trackId))
 	if err != nil {
 		return c.JSON(http.StatusServiceUnavailable, map[string]string{
-			"error": err.Error(),
+			"error": "trackData not available",
 		})
 	}
 
