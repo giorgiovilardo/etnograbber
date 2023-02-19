@@ -15,8 +15,8 @@ type Token struct {
 	ExpiresAt    time.Time
 }
 
-func (t Token) IsExpired() bool {
-	return t.ExpiresAt.Before(time.Now())
+func (t Token) IsExpired(c Clock) bool {
+	return t.ExpiresAt.Before(c.Now())
 }
 
 func NewTokenFromJsonData(tokenData []byte, now time.Time) (Token, error) {

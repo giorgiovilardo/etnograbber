@@ -29,7 +29,7 @@ func (s *HttpTokenRepository) GetToken() (Token, error) {
 		s.currentToken = token
 		s.initialized = true
 	}
-	if s.currentToken.IsExpired() {
+	if s.currentToken.IsExpired(s.clock) {
 		token, err := renewToken(s.currentToken, s.sc, s.clock.Now())
 		if err != nil {
 			return Token{}, err

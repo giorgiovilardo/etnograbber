@@ -9,8 +9,8 @@ import (
 func TestToken_IsExpired(t *testing.T) {
 	pastToken := Token{ExpiresAt: time.Date(2021, 8, 25, 8, 30, 0, 0, time.UTC)}
 	futureToken := Token{ExpiresAt: time.Date(2921, 8, 25, 8, 30, 0, 0, time.UTC)}
-	assert.True(t, pastToken.IsExpired())
-	assert.False(t, futureToken.IsExpired())
+	assert.True(t, pastToken.IsExpired(NewRealClock()))
+	assert.False(t, futureToken.IsExpired(NewRealClock()))
 }
 
 func TestNewTokenFromJsonData(t *testing.T) {
