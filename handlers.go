@@ -13,51 +13,56 @@ func HealthHandler(c echo.Context) error {
 }
 
 func TrackHandler(c echo.Context) error {
-	token, err := c.Get("tokenRepository").(TokenRepository).GetToken()
-	if err != nil {
-		return c.JSON(http.StatusServiceUnavailable, map[string]string{
-			"error": "token not available",
-		})
-	}
-
 	trackId, err := strconv.ParseInt(c.Param("trackId"), 10, 64)
 	if err != nil {
-		return c.JSON(http.StatusServiceUnavailable, map[string]string{
-			"error": "trackId not a number",
-		})
+		return trackIdNotNumberError(c)
+	}
+
+	token, err := c.Get("tokenRepository").(TokenRepository).GetToken()
+	if err != nil {
+		return tokenNotAvailableError(c)
 	}
 
 	track, err := c.Get("trackRepository").(TrackRepository).GetTrackData(token, int(trackId))
 	if err != nil {
-		return c.JSON(http.StatusServiceUnavailable, map[string]string{
-			"error": "trackData not available",
-		})
+		return apiError(c, trackDataNotAvailable)
 	}
 
 	return c.JSON(http.StatusOK, track)
 }
 
 func StreamTrackHandler(c echo.Context) error {
-	token, err := c.Get("tokenRepository").(TokenRepository).GetToken()
-	if err != nil {
-		return c.JSON(http.StatusServiceUnavailable, map[string]string{
-			"error": "token not available",
-		})
-	}
-
 	trackId, err := strconv.ParseInt(c.Param("trackId"), 10, 64)
 	if err != nil {
-		return c.JSON(http.StatusServiceUnavailable, map[string]string{
-			"error": "trackId not a number",
-		})
+		return trackIdNotNumberError(c)
+	}
+
+	token, err := c.Get("tokenRepository").(TokenRepository).GetToken()
+	if err != nil {
+		return tokenNotAvailableError(c)
 	}
 
 	trackReader, err := c.Get("trackRepository").(TrackRepository).GetTrack(token, int(trackId))
 	if err != nil {
-		return c.JSON(http.StatusServiceUnavailable, map[string]string{
-			"error": "trackData not available",
-		})
+		return apiError(c, trackNotAvailable)
 	}
 
 	return c.Stream(http.StatusOK, "audio/mpeg", trackReader)
 }
+
+func apiError(c echo.Context, message string) error {
+	return c.JSON(http.StatusServiceUnavailable, map[string]string{"error": message})
+}
+
+func tokenNotAvailableError(c echo.Context) error {
+	return apiError(c, tokenNotAvailable)
+}
+
+func trackIdNotNumberError(c echo.Context) error {
+	return apiError(c, trackIdNotANumber)
+}
+
+const tokenNotAvailable = "token not available"
+const trackIdNotANumber = "trackId not a number"
+const trackDataNotAvailable = "trackData not available"
+const trackNotAvailable = "track not available"

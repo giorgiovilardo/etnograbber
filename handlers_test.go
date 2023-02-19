@@ -145,7 +145,7 @@ func TestStreamTrackHandlerFailsIfTokenNotAvailable(t *testing.T) {
 }
 
 func TestStreamTrackHandlerFailsIfTrackNotAvailable(t *testing.T) {
-	expectedResponseBody := `{"error":"trackData not available"}`
+	expectedResponseBody := `{"error":"track not available"}`
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodGet, "/1234/stream", nil)
 	rec := httptest.NewRecorder()
