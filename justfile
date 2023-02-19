@@ -8,7 +8,7 @@ run:
     go run .
 
 test:
-    go test
+    go test -cover
 
 build:
     go build -o bin/etnograbber
