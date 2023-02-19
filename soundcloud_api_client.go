@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -26,10 +25,7 @@ func (s *HttpSoundcloudApi) GetTrackData(t Token, id int) (map[string]interface{
 	trackUrl := fmt.Sprintf("%s/%d", s.c.BaseApiUrl, id)
 	authHeader := fmt.Sprintf("OAuth %s", t.AccessToken)
 	client := http.Client{Timeout: time.Second * 5}
-	req, err := http.NewRequest(http.MethodGet, trackUrl, nil)
-	if err != nil {
-		log.Fatal("couldnt create a request in GetTrackData. This should never happen, panicking")
-	}
+	req, _ := http.NewRequest(http.MethodGet, trackUrl, nil)
 	req.Header.Set("Authorization", authHeader)
 	res, err := client.Do(req)
 	if err != nil {
@@ -54,10 +50,7 @@ func (s *HttpSoundcloudApi) GetTrack(t Token, id int) ([]byte, error) {
 	trackUrl := fmt.Sprintf("%s/%d/stream", s.c.BaseApiUrl, id)
 	authHeader := fmt.Sprintf("OAuth %s", t.AccessToken)
 	client := http.Client{Timeout: time.Second * 20}
-	req, err := http.NewRequest(http.MethodGet, trackUrl, nil)
-	if err != nil {
-		log.Fatal("couldnt create a request in GetTrack. This should never happen, panicking")
-	}
+	req, _ := http.NewRequest(http.MethodGet, trackUrl, nil)
 	req.Header.Set("Authorization", authHeader)
 	res, err := client.Do(req)
 	if err != nil {
