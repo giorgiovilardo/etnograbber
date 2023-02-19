@@ -13,7 +13,7 @@ func main() {
 	httpTokenRepository := NewHttpTokenRepository(clock, httpSoundcloudApi)
 	e := echo.New()
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{"*"},
+		AllowOrigins: config.AllowedOrigins,
 		AllowMethods: []string{http.MethodGet},
 	}))
 	e.Use(addService(httpTokenRepository, "tokenRepository"))

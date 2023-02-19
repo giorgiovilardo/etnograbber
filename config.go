@@ -9,11 +9,12 @@ import (
 const configFileName = "config.toml"
 
 type Config struct {
-	BaseApiUrl      string `mapstructure:"base_api_url" validate:"required,url"`
-	BaseAuthUrl     string `mapstructure:"base_auth_url" validate:"required,url"`
-	ClientId        string `mapstructure:"client_id" validate:"required"`
-	ClientSecret    string `mapstructure:"client_secret" validate:"required"`
-	FallbackAuthUrl string `mapstructure:"token_generator_fallback" validate:"required,url"`
+	BaseApiUrl      string   `mapstructure:"base_api_url" validate:"required,url"`
+	BaseAuthUrl     string   `mapstructure:"base_auth_url" validate:"required,url"`
+	ClientId        string   `mapstructure:"client_id" validate:"required"`
+	ClientSecret    string   `mapstructure:"client_secret" validate:"required"`
+	FallbackAuthUrl string   `mapstructure:"token_generator_fallback" validate:"required,url"`
+	AllowedOrigins  []string `mapstructure:"allowed_origins" validate:"required"`
 }
 
 func GetConfig() (c Config) {
