@@ -32,7 +32,7 @@ func TrackHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, track)
 }
 
-func StreamTrackHandler(cache TrackCache) func(c echo.Context) error {
+func StreamTrackHandler(cache TrackCache, tokenRep TokenRepository, trackRep TrackRepository) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		trackId, err := strconv.Atoi(c.Param("trackId"))
 		if err != nil {
@@ -44,12 +44,12 @@ func StreamTrackHandler(cache TrackCache) func(c echo.Context) error {
 			return c.Stream(http.StatusOK, "audio/mpeg", bytes.NewReader(trackReader))
 		}
 
-		token, err := c.Get("tokenRepository").(TokenRepository).GetToken()
+		token, err := tokenRep.GetToken()
 		if err != nil {
 			return tokenNotAvailableError(c)
 		}
 
-		trackReader, err := c.Get("trackRepository").(TrackRepository).GetTrack(token, trackId)
+		trackReader, err := trackRep.GetTrack(token, trackId)
 		if err != nil {
 			return apiError(c, trackNotAvailable)
 		}

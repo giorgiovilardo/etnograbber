@@ -97,13 +97,11 @@ func TestStreamTrackHandler(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/1234/stream", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	c.Set("trackRepository", mockTrackRepository{})
-	c.Set("tokenRepository", mockTokenRepository{})
 	c.SetPath("/:trackId")
 	c.SetParamNames("trackId")
 	c.SetParamValues("1234")
 	cache, _ := lru.New[int, []byte](1)
-	if assert.NoError(t, StreamTrackHandler(cache)(c)) {
+	if assert.NoError(t, StreamTrackHandler(cache, mockTokenRepository{}, mockTrackRepository{})(c)) {
 		assert.Equal(t, http.StatusOK, rec.Code)
 		assert.Equal(t, "audio/mpeg", rec.Header().Get("Content-Type"))
 		assert.Equal(t, expectedResponseBody, strings.Trim(rec.Body.String(), "\n"))
@@ -116,8 +114,6 @@ func TestStreamTrackHandlerFetchesFromCacheIfAvailable(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	c.Set("trackRepository", mockTrackRepository{})
-	c.Set("tokenRepository", mockTokenRepository{})
 	c.SetPath("/:trackId/stream")
 	c.SetParamNames("trackId")
 	c.SetParamValues("1234")
@@ -125,13 +121,14 @@ func TestStreamTrackHandlerFetchesFromCacheIfAvailable(t *testing.T) {
 		cache: map[int][]byte{},
 		used:  false,
 	}
-	if assert.NoError(t, StreamTrackHandler(cache)(c)) {
+	handler := StreamTrackHandler(cache, mockTokenRepository{}, mockTrackRepository{})
+	if assert.NoError(t, handler(c)) {
 		assert.Equal(t, http.StatusOK, rec.Code)
 		assert.Equal(t, "audio/mpeg", rec.Header().Get("Content-Type"))
 		assert.Equal(t, expectedResponseBody, strings.Trim(rec.Body.String(), "\n"))
 		assert.False(t, cache.used)
 	}
-	if assert.NoError(t, StreamTrackHandler(cache)(c)) {
+	if assert.NoError(t, handler(c)) {
 		assert.True(t, cache.used)
 	}
 }
@@ -142,13 +139,11 @@ func TestStreamTrackHandlerFailsIfPathParamIsNotIntParsable(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/aba/stream", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	c.Set("trackRepository", mockTrackRepository{})
-	c.Set("tokenRepository", mockTokenRepository{})
 	c.SetPath("/:trackId")
 	c.SetParamNames("trackId")
 	c.SetParamValues("aba")
 	cache, _ := lru.New[int, []byte](1)
-	if assert.NoError(t, StreamTrackHandler(cache)(c)) {
+	if assert.NoError(t, StreamTrackHandler(cache, mockTokenRepository{}, mockTrackRepository{})(c)) {
 		assert.Equal(t, http.StatusServiceUnavailable, rec.Code)
 		assert.Equal(t, expectedResponseBody, strings.Trim(rec.Body.String(), "\n"))
 	}
@@ -160,13 +155,11 @@ func TestStreamTrackHandlerFailsIfTokenNotAvailable(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/1234/stream", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	c.Set("trackRepository", mockTrackRepository{})
-	c.Set("tokenRepository", mockFailingTokenRepository{})
 	c.SetPath("/:trackId")
 	c.SetParamNames("trackId")
 	c.SetParamValues("1234")
 	cache, _ := lru.New[int, []byte](1)
-	if assert.NoError(t, StreamTrackHandler(cache)(c)) {
+	if assert.NoError(t, StreamTrackHandler(cache, mockFailingTokenRepository{}, mockTrackRepository{})(c)) {
 		assert.Equal(t, http.StatusServiceUnavailable, rec.Code)
 		assert.Equal(t, expectedResponseBody, strings.Trim(rec.Body.String(), "\n"))
 	}
@@ -178,13 +171,11 @@ func TestStreamTrackHandlerFailsIfTrackNotAvailable(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/1234/stream", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	c.Set("trackRepository", mockFailingTrackRepository{})
-	c.Set("tokenRepository", mockTokenRepository{})
 	c.SetPath("/:trackId")
 	c.SetParamNames("trackId")
 	c.SetParamValues("1234")
 	cache, _ := lru.New[int, []byte](1)
-	if assert.NoError(t, StreamTrackHandler(cache)(c)) {
+	if assert.NoError(t, StreamTrackHandler(cache, mockTokenRepository{}, mockFailingTrackRepository{})(c)) {
 		assert.Equal(t, http.StatusServiceUnavailable, rec.Code)
 		assert.Equal(t, expectedResponseBody, strings.Trim(rec.Body.String(), "\n"))
 	}

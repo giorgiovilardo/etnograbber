@@ -23,7 +23,7 @@ func main() {
 	e.Use(addService(httpSoundcloudApi, "trackRepository"))
 	e.GET("/health", HealthHandler)
 	e.GET("/:trackId", TrackHandler)
-	e.GET("/:trackId/stream", StreamTrackHandler(trackCache))
+	e.GET("/:trackId/stream", StreamTrackHandler(trackCache, httpTokenRepository, httpSoundcloudApi))
 	e.Logger.Fatal(e.Start(":5000"))
 }
 
