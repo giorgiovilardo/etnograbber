@@ -12,6 +12,7 @@ func main() {
 	httpSoundcloudApi := NewHttpSoundcloudApi(config)
 	httpTokenRepository := NewHttpTokenRepository(clock, httpSoundcloudApi)
 	e := echo.New()
+	e.HideBanner = true
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: config.AllowedOrigins,
 		AllowMethods: []string{http.MethodGet},
