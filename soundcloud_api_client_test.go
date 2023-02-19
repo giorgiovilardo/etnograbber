@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"github.com/stretchr/testify/assert"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -140,4 +142,53 @@ func TestHttpSoundcloudApi_AuthErrorsIfBothIsNotSuccess(t *testing.T) {
 	assert.Equal(t, []byte(nil), res)
 	assert.Contains(t, err.Error(), "failed to get token from BaseAuth, status not 200")
 	assert.Contains(t, err.Error(), "failed to get token from FallbackAuth, status not 200")
+}
+
+func TestHttpSoundcloudApi_GetTrackDataWorksCorrectly(t *testing.T) {
+	expected := map[string]interface{}{"fake": "result"}
+	token := Token{AccessToken: "faketoken"}
+	id := 100
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "OAuth faketoken", r.Header.Get("Authorization"))
+		assert.Equal(t, http.MethodGet, r.Method)
+		assert.Equal(t, fmt.Sprintf("/%d", id), r.URL.RequestURI())
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{"fake":"result"}`))
+	}))
+	defer server.Close()
+	conf := Config{BaseApiUrl: server.URL}
+	api := NewHttpSoundcloudApi(conf)
+	res, _ := api.GetTrackData(token, id)
+	assert.Equal(t, expected, res)
+}
+
+func TestHttpSoundcloudApi_GetTrackDataErrorsWithFailingClient(t *testing.T) {
+	conf := Config{BaseApiUrl: "YOLO"}
+	api := NewHttpSoundcloudApi(conf)
+	_, err := api.GetTrackData(Token{}, 0)
+	assert.Contains(t, err.Error(), "failed to get track data")
+}
+
+func TestHttpSoundcloudApi_GetTrackWorksCorrectly(t *testing.T) {
+	token := Token{AccessToken: "faketoken"}
+	id := 100
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "OAuth faketoken", r.Header.Get("Authorization"))
+		assert.Equal(t, http.MethodGet, r.Method)
+		assert.Equal(t, fmt.Sprintf("/%d/stream", id), r.URL.RequestURI())
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{"fake":"result"}`))
+	}))
+	defer server.Close()
+	conf := Config{BaseApiUrl: server.URL}
+	api := NewHttpSoundcloudApi(conf)
+	res, _ := api.GetTrack(token, id)
+	assert.Implements(t, (*io.Reader)(nil), res)
+}
+
+func TestHttpSoundcloudApi_GetTrackErrorsWithFailingClient(t *testing.T) {
+	conf := Config{BaseApiUrl: "YOLO"}
+	api := NewHttpSoundcloudApi(conf)
+	_, err := api.GetTrack(Token{}, 0)
+	assert.Contains(t, err.Error(), "failed to get track stream")
 }
