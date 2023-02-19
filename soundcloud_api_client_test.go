@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"github.com/stretchr/testify/assert"
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -183,7 +182,7 @@ func TestHttpSoundcloudApi_GetTrackWorksCorrectly(t *testing.T) {
 	conf := Config{BaseApiUrl: server.URL}
 	api := NewHttpSoundcloudApi(conf)
 	res, _ := api.GetTrack(token, id)
-	assert.Implements(t, (*io.Reader)(nil), res)
+	assert.Equal(t, []byte(`{"fake":"result"}`), res)
 }
 
 func TestHttpSoundcloudApi_GetTrackErrorsWithFailingClient(t *testing.T) {

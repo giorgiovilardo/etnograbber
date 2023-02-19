@@ -1,6 +1,7 @@
 package main
 
 import (
+	lru "github.com/hashicorp/golang-lru/v2"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"net/http"
@@ -11,6 +12,7 @@ func main() {
 	clock := NewRealClock()
 	httpSoundcloudApi := NewHttpSoundcloudApi(config)
 	httpTokenRepository := NewHttpTokenRepository(clock, httpSoundcloudApi)
+	trackCache, _ := lru.New[int, []byte](30)
 	e := echo.New()
 	e.HideBanner = true
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
@@ -21,7 +23,7 @@ func main() {
 	e.Use(addService(httpSoundcloudApi, "trackRepository"))
 	e.GET("/health", HealthHandler)
 	e.GET("/:trackId", TrackHandler)
-	e.GET("/:trackId/stream", StreamTrackHandler)
+	e.GET("/:trackId/stream", StreamTrackHandler(trackCache))
 	e.Logger.Fatal(e.Start(":5000"))
 }
 

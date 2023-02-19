@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"strconv"
@@ -31,23 +32,31 @@ func TrackHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, track)
 }
 
-func StreamTrackHandler(c echo.Context) error {
-	trackId, err := strconv.ParseInt(c.Param("trackId"), 10, 64)
-	if err != nil {
-		return trackIdNotNumberError(c)
-	}
+func StreamTrackHandler(cache TrackCache) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		trackId, err := strconv.Atoi(c.Param("trackId"))
+		if err != nil {
+			return trackIdNotNumberError(c)
+		}
 
-	token, err := c.Get("tokenRepository").(TokenRepository).GetToken()
-	if err != nil {
-		return tokenNotAvailableError(c)
-	}
+		if cache.Contains(trackId) {
+			trackReader, _ := cache.Get(trackId)
+			return c.Stream(http.StatusOK, "audio/mpeg", bytes.NewReader(trackReader))
+		}
 
-	trackReader, err := c.Get("trackRepository").(TrackRepository).GetTrack(token, int(trackId))
-	if err != nil {
-		return apiError(c, trackNotAvailable)
-	}
+		token, err := c.Get("tokenRepository").(TokenRepository).GetToken()
+		if err != nil {
+			return tokenNotAvailableError(c)
+		}
 
-	return c.Stream(http.StatusOK, "audio/mpeg", trackReader)
+		trackReader, err := c.Get("trackRepository").(TrackRepository).GetTrack(token, trackId)
+		if err != nil {
+			return apiError(c, trackNotAvailable)
+		}
+
+		cache.Add(trackId, trackReader)
+		return c.Stream(http.StatusOK, "audio/mpeg", bytes.NewReader(trackReader))
+	}
 }
 
 func apiError(c echo.Context, message string) error {

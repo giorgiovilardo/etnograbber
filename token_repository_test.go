@@ -84,7 +84,7 @@ func (m mockSoundcloudApi) Auth() ([]byte, error) {
 	return []byte(`{"access_token":"miao","expires_in":3599,"refresh_token":"bau","scope":"","token_type":"bearer"}`), nil
 }
 
-func (m mockSoundcloudApi) Renew(t Token) ([]byte, error) {
+func (m mockSoundcloudApi) Renew(_ Token) ([]byte, error) {
 	return []byte(`{"access_token":"miao_renewed","expires_in":3599,"refresh_token":"bau","scope":"","token_type":"bearer"}`), nil
 }
 
@@ -94,7 +94,7 @@ func (m mockFailingSoundcloudApi) Auth() ([]byte, error) {
 	return nil, errors.New("auth_fail")
 }
 
-func (m mockFailingSoundcloudApi) Renew(t Token) ([]byte, error) {
+func (m mockFailingSoundcloudApi) Renew(_ Token) ([]byte, error) {
 	return nil, errors.New("renew_fail")
 }
 
@@ -104,6 +104,6 @@ func (m mockJsonFailingSoundcloudApi) Auth() ([]byte, error) {
 	return []byte(`12312`), nil
 }
 
-func (m mockJsonFailingSoundcloudApi) Renew(t Token) ([]byte, error) {
+func (m mockJsonFailingSoundcloudApi) Renew(_ Token) ([]byte, error) {
 	return []byte(`12312`), nil
 }

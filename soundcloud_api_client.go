@@ -50,7 +50,7 @@ func (s *HttpSoundcloudApi) GetTrackData(t Token, id int) (map[string]interface{
 	return result, nil
 }
 
-func (s *HttpSoundcloudApi) GetTrack(t Token, id int) (io.Reader, error) {
+func (s *HttpSoundcloudApi) GetTrack(t Token, id int) ([]byte, error) {
 	trackUrl := fmt.Sprintf("%s/%d/stream", s.c.BaseApiUrl, id)
 	authHeader := fmt.Sprintf("OAuth %s", t.AccessToken)
 	client := http.Client{Timeout: time.Second * 20}
@@ -64,7 +64,12 @@ func (s *HttpSoundcloudApi) GetTrack(t Token, id int) (io.Reader, error) {
 		return nil, errors.Join(errors.New("failed to get track stream"), err)
 	}
 
-	return res.Body, nil
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, errors.Join(errors.New("failed to get track stream"), err)
+	}
+
+	return body, nil
 }
 
 func (s *HttpSoundcloudApi) Auth() ([]byte, error) {
