@@ -32,10 +32,7 @@ func (s *HttpSoundcloudApi) GetTrackData(t Token, id int) (map[string]interface{
 		log.Fatal("couldnt create a request in GetTrackData. This should never happen, panicking")
 	}
 	req.Header.Set("Authorization", authHeader)
-	log.Println(req.Header.Get("Authorization"))
-	log.Println(req)
 	res, err := client.Do(req)
-	log.Println(res.StatusCode)
 	if err != nil {
 		return nil, errors.Join(errors.New("failed to get track data"), err)
 	}
