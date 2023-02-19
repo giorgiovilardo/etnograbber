@@ -16,27 +16,18 @@ func main() {
 		AllowOrigins: []string{"*"},
 		AllowMethods: []string{http.MethodGet},
 	}))
-	e.Use(loadTokenRepository(httpTokenRepository))
-	e.Use(loadTrackRepository(httpSoundcloudApi))
+	e.Use(addService(httpTokenRepository, "tokenRepository"))
+	e.Use(addService(httpSoundcloudApi, "trackRepository"))
 	e.GET("/health", HealthHandler)
 	e.GET("/:trackId", TrackHandler)
 	e.GET("/:trackId/stream", StreamTrackHandler)
 	e.Logger.Fatal(e.Start(":5000"))
 }
 
-func loadTokenRepository(t TokenRepository) echo.MiddlewareFunc {
+func addService[T any](t T, key string) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			c.Set("tokenRepository", t)
-			return next(c)
-		}
-	}
-}
-
-func loadTrackRepository(t TrackRepository) echo.MiddlewareFunc {
-	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			c.Set("trackRepository", t)
+			c.Set(key, t)
 			return next(c)
 		}
 	}
