@@ -13,23 +13,25 @@ func HealthHandler(c echo.Context) error {
 	})
 }
 
-func TrackHandler(c echo.Context) error {
-	trackId, err := strconv.ParseInt(c.Param("trackId"), 10, 64)
-	if err != nil {
-		return trackIdNotNumberError(c)
-	}
+func TrackHandler(tokenRep TokenRepository, trackRep TrackRepository) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		trackId, err := strconv.ParseInt(c.Param("trackId"), 10, 64)
+		if err != nil {
+			return trackIdNotNumberError(c)
+		}
 
-	token, err := c.Get("tokenRepository").(TokenRepository).GetToken()
-	if err != nil {
-		return tokenNotAvailableError(c)
-	}
+		token, err := tokenRep.GetToken()
+		if err != nil {
+			return tokenNotAvailableError(c)
+		}
 
-	track, err := c.Get("trackRepository").(TrackRepository).GetTrackData(token, int(trackId))
-	if err != nil {
-		return apiError(c, trackDataNotAvailable)
-	}
+		track, err := trackRep.GetTrackData(token, int(trackId))
+		if err != nil {
+			return apiError(c, trackDataNotAvailable)
+		}
 
-	return c.JSON(http.StatusOK, track)
+		return c.JSON(http.StatusOK, track)
+	}
 }
 
 func StreamTrackHandler(cache TrackCache, tokenRep TokenRepository, trackRep TrackRepository) func(c echo.Context) error {

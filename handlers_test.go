@@ -29,12 +29,10 @@ func TestTrackHandlerHasAPathParam(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/1234", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	c.Set("trackRepository", mockTrackRepository{})
-	c.Set("tokenRepository", mockTokenRepository{})
 	c.SetPath("/:trackId")
 	c.SetParamNames("trackId")
 	c.SetParamValues("1234")
-	if assert.NoError(t, TrackHandler(c)) {
+	if assert.NoError(t, TrackHandler(mockTokenRepository{}, mockTrackRepository{})(c)) {
 		assert.Equal(t, http.StatusOK, rec.Code)
 		assert.Equal(t, expectedResponseBody, strings.Trim(rec.Body.String(), "\n"))
 	}
@@ -46,12 +44,10 @@ func TestTrackHandlerFailsIfPathParamIsNotIntParsable(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/aba", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	c.Set("trackRepository", mockTrackRepository{})
-	c.Set("tokenRepository", mockTokenRepository{})
 	c.SetPath("/:trackId")
 	c.SetParamNames("trackId")
 	c.SetParamValues("aba")
-	if assert.NoError(t, TrackHandler(c)) {
+	if assert.NoError(t, TrackHandler(mockTokenRepository{}, mockTrackRepository{})(c)) {
 		assert.Equal(t, http.StatusServiceUnavailable, rec.Code)
 		assert.Equal(t, expectedResponseBody, strings.Trim(rec.Body.String(), "\n"))
 	}
@@ -63,12 +59,10 @@ func TestTrackHandlerFailsIfTokenNotAvailable(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/1234", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	c.Set("trackRepository", mockTrackRepository{})
-	c.Set("tokenRepository", mockFailingTokenRepository{})
 	c.SetPath("/:trackId")
 	c.SetParamNames("trackId")
 	c.SetParamValues("1234")
-	if assert.NoError(t, TrackHandler(c)) {
+	if assert.NoError(t, TrackHandler(mockFailingTokenRepository{}, mockTrackRepository{})(c)) {
 		assert.Equal(t, http.StatusServiceUnavailable, rec.Code)
 		assert.Equal(t, expectedResponseBody, strings.Trim(rec.Body.String(), "\n"))
 	}
@@ -80,12 +74,10 @@ func TestTrackHandlerFailsIfTrackNotAvailable(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/1234", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	c.Set("trackRepository", mockFailingTrackRepository{})
-	c.Set("tokenRepository", mockTokenRepository{})
 	c.SetPath("/:trackId")
 	c.SetParamNames("trackId")
 	c.SetParamValues("1234")
-	if assert.NoError(t, TrackHandler(c)) {
+	if assert.NoError(t, TrackHandler(mockTokenRepository{}, mockFailingTrackRepository{})(c)) {
 		assert.Equal(t, http.StatusServiceUnavailable, rec.Code)
 		assert.Equal(t, expectedResponseBody, strings.Trim(rec.Body.String(), "\n"))
 	}
