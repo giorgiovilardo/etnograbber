@@ -12,7 +12,6 @@ import (
 	"time"
 )
 
-const AuthApiRateLimitedStatus = http.StatusTooManyRequests
 const AuthApiSuccessStatus = http.StatusOK
 
 type HttpSoundcloudApi struct {
@@ -121,10 +120,6 @@ func (s *HttpSoundcloudApi) getToken() ([]byte, error) {
 		return nil, errors.New(fmt.Sprintf("failed to get token from BaseAuth, status not %d", AuthApiSuccessStatus))
 	}
 
-	if res.StatusCode == AuthApiRateLimitedStatus {
-		return nil, errors.New(fmt.Sprintf("failed to get token from BaseAuth, rate limited with status %d", AuthApiRateLimitedStatus))
-	}
-
 	result, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, errors.Join(errors.New("unparsable api body"), err)
@@ -142,7 +137,7 @@ func (s *HttpSoundcloudApi) getFallback() ([]byte, error) {
 	}
 
 	if res.StatusCode != AuthApiSuccessStatus {
-		return nil, errors.New(fmt.Sprintf("failed to get token from BaseAuth, status not %d", AuthApiSuccessStatus))
+		return nil, errors.New(fmt.Sprintf("failed to get token from FallbackAuth, status not %d", AuthApiSuccessStatus))
 	}
 
 	result, err := io.ReadAll(res.Body)
