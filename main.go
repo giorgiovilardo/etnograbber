@@ -8,7 +8,7 @@ import (
 
 func main() {
 	config := GetConfig()
-	clock := RealClock{}
+	clock := NewRealClock()
 	httpSoundcloudApi := NewHttpSoundcloudApi(config)
 	httpTokenRepository := NewHttpTokenRepository(clock, httpSoundcloudApi)
 	e := echo.New()
