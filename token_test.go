@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/stretchr/testify/assert"
-	"reflect"
 	"testing"
 	"time"
 )
@@ -74,19 +73,11 @@ func TestNewTokenFromJsonData(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := NewTokenFromJsonData(tt.jsonRepr, tt.time)
-			if (err != nil) && tt.wantErr {
-				if err.Error() != tt.wantErrMsg {
-					t.Errorf("tokenFromJson() error = %v, wantErrMsg %v", err, tt.wantErrMsg)
-				}
+			if err != nil && tt.wantErr {
+				assert.Equalf(t, tt.wantErrMsg, err.Error(), "tokenFromJson() error = %v, wantErrMsg %v", err, tt.wantErrMsg)
 				return
 			}
-			if (err != nil) != tt.wantErr {
-				t.Errorf("tokenFromJson() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("tokenFromJson() got = %v, want %v", got, tt.want)
-			}
+			assert.Equalf(t, tt.want, got, "NewTokenFromJsonData(%v, %v)", tt.jsonRepr, tt.time)
 		})
 	}
 }
