@@ -13,7 +13,7 @@ func HealthHandler(c echo.Context) error {
 	})
 }
 
-func TrackHandler(tokenRep TokenRepository, trackRep TrackRepository) func(c echo.Context) error {
+func TrackDataHandler(tokenRep TokenRepository, trackRep TrackRepository) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		trackId, err := strconv.ParseInt(c.Param("trackId"), 10, 64)
 		if err != nil {
@@ -34,7 +34,7 @@ func TrackHandler(tokenRep TokenRepository, trackRep TrackRepository) func(c ech
 	}
 }
 
-func StreamTrackHandler(cache TrackCache, tokenRep TokenRepository, trackRep TrackRepository) func(c echo.Context) error {
+func TrackHandler(cache TrackCache, tokenRep TokenRepository, trackRep TrackRepository) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		trackId, err := strconv.Atoi(c.Param("trackId"))
 		if err != nil {
