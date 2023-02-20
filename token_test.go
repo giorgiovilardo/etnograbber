@@ -7,10 +7,22 @@ import (
 )
 
 func TestToken_IsExpired(t *testing.T) {
-	pastToken := Token{ExpiresAt: time.Date(2021, 8, 25, 8, 30, 0, 0, time.UTC)}
-	futureToken := Token{ExpiresAt: time.Date(2921, 8, 25, 8, 30, 0, 0, time.UTC)}
-	assert.True(t, pastToken.IsExpired(NewRealClock()))
-	assert.False(t, futureToken.IsExpired(NewRealClock()))
+	clock := NewBrokenClock(time.Date(2021, 8, 25, 8, 30, 0, 0, time.UTC))
+
+	t.Run("should consider expired a token with an expiry in the past", func(t *testing.T) {
+		pastToken := Token{ExpiresAt: time.Date(2020, 8, 25, 8, 30, 0, 0, time.UTC)}
+		assert.True(t, pastToken.IsExpired(clock))
+	})
+
+	t.Run("should not consider expired a token with an expiry in the future", func(t *testing.T) {
+		futureToken := Token{ExpiresAt: time.Date(2022, 8, 25, 8, 30, 0, 0, time.UTC)}
+		assert.False(t, futureToken.IsExpired(clock))
+	})
+
+	t.Run("should not consider expired a token in the same instant it expires", func(t *testing.T) {
+		instantToken := Token{ExpiresAt: clock.Now()}
+		assert.False(t, instantToken.IsExpired(clock))
+	})
 }
 
 func TestNewTokenFromJsonData(t *testing.T) {
