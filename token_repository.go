@@ -20,7 +20,7 @@ func NewHttpTokenRepository(c Clock, sc SoundcloudApi) *HttpTokenRepository {
 }
 
 func (s *HttpTokenRepository) GetToken() (Token, error) {
-	if s.initialized == false {
+	if !s.initialized {
 		token, err := newToken(s.sc, s.clock.Now())
 		if err != nil {
 			return Token{}, err

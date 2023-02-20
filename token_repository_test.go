@@ -10,14 +10,14 @@ import (
 func TestNewHttpTokenRepository(t *testing.T) {
 	clock := NewBrokenClock(time.Date(2021, 8, 25, 8, 30, 0, 0, time.UTC))
 	got := NewHttpTokenRepository(clock, mockSoundcloudApi{})
-	assert.Equal(t, false, got.initialized)
+	assert.False(t, got.initialized)
 }
 
 func TestHttpTokenRepository_GetTokenOnFirstRunInitializes(t *testing.T) {
 	clock := NewBrokenClock(time.Date(2021, 8, 25, 8, 30, 0, 0, time.UTC))
 	got := NewHttpTokenRepository(clock, mockSoundcloudApi{})
 	_, _ = got.GetToken()
-	assert.Equal(t, true, got.initialized)
+	assert.True(t, got.initialized)
 }
 
 func TestHttpTokenRepository_GetTokenFirstRun(t *testing.T) {

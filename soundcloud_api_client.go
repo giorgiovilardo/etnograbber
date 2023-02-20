@@ -115,7 +115,7 @@ func (s *HttpSoundcloudApi) getToken() ([]byte, error) {
 	}
 
 	if res.StatusCode != AuthApiSuccessStatus {
-		return nil, errors.New(fmt.Sprintf("failed to get token from BaseAuth, status not %d", AuthApiSuccessStatus))
+		return nil, fmt.Errorf("failed to get token from BaseAuth, status not %d", AuthApiSuccessStatus)
 	}
 
 	result, err := io.ReadAll(res.Body)
@@ -135,7 +135,7 @@ func (s *HttpSoundcloudApi) getFallback() ([]byte, error) {
 	}
 
 	if res.StatusCode != AuthApiSuccessStatus {
-		return nil, errors.New(fmt.Sprintf("failed to get token from FallbackAuth, status not %d", AuthApiSuccessStatus))
+		return nil, fmt.Errorf("failed to get token from FallbackAuth, status not %d", AuthApiSuccessStatus)
 	}
 
 	result, err := io.ReadAll(res.Body)
