@@ -12,92 +12,146 @@ import (
 )
 
 func TestHealthHandler(t *testing.T) {
-	expectedResponseBody := `{"message":"ok"}`
-	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/health", nil)
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	if assert.NoError(t, HealthHandler(c)) {
-		assert.Equal(t, http.StatusOK, rec.Code)
-		assert.Equal(t, expectedResponseBody, strings.Trim(rec.Body.String(), "\n"))
-	}
+	t.Run("should return a small message signaling service is alive", func(t *testing.T) {
+		expectedResponseBody := `{"message":"ok"}`
+		e := echo.New()
+		req := httptest.NewRequest(http.MethodGet, "/health", nil)
+		rec := httptest.NewRecorder()
+		c := e.NewContext(req, rec)
+		if assert.NoError(t, HealthHandler(c)) {
+			assert.Equal(t, http.StatusOK, rec.Code)
+			assert.Equal(t, expectedResponseBody, strings.Trim(rec.Body.String(), "\n"))
+		}
+	})
 }
 
-func TestTrackHandlerHasAPathParam(t *testing.T) {
-	expectedResponseBody := `{"id":1234}`
-	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/1234", nil)
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	c.SetPath("/:trackId")
-	c.SetParamNames("trackId")
-	c.SetParamValues("1234")
-	if assert.NoError(t, TrackHandler(mockTokenRepository{}, mockTrackRepository{})(c)) {
-		assert.Equal(t, http.StatusOK, rec.Code)
-		assert.Equal(t, expectedResponseBody, strings.Trim(rec.Body.String(), "\n"))
-	}
+func TestTrackDataHandler(t *testing.T) {
+	t.Run("should proxy over what the repo returns", func(t *testing.T) {
+		expectedResponseBody := `{"id":1234}` // change here to see me fail
+		e := echo.New()
+		req := httptest.NewRequest(http.MethodGet, "/1234", nil)
+		rec := httptest.NewRecorder()
+		c := e.NewContext(req, rec)
+		c.SetPath("/:trackId")
+		c.SetParamNames("trackId")
+		c.SetParamValues("1234")
+		if assert.NoError(t, TrackDataHandler(mockTokenRepository{}, mockTrackRepository{})(c)) {
+			assert.Equal(t, http.StatusOK, rec.Code)
+			assert.Equal(t, expectedResponseBody, strings.Trim(rec.Body.String(), "\n"))
+		}
+	})
+
+	t.Run("should fail if path param is non int castable", func(t *testing.T) {
+		expectedResponseBody := `{"error":"trackId not a number"}`
+		e := echo.New()
+		req := httptest.NewRequest(http.MethodGet, "/aba", nil)
+		rec := httptest.NewRecorder()
+		c := e.NewContext(req, rec)
+		c.SetPath("/:trackId")
+		c.SetParamNames("trackId")
+		c.SetParamValues("aba")
+		if assert.NoError(t, TrackDataHandler(mockTokenRepository{}, mockTrackRepository{})(c)) {
+			assert.Equal(t, http.StatusServiceUnavailable, rec.Code)
+			assert.Equal(t, expectedResponseBody, strings.Trim(rec.Body.String(), "\n"))
+		}
+	})
+
+	t.Run("should fail if it can't acquire a token", func(t *testing.T) {
+		expectedResponseBody := `{"error":"token not available"}`
+		e := echo.New()
+		req := httptest.NewRequest(http.MethodGet, "/1234", nil)
+		rec := httptest.NewRecorder()
+		c := e.NewContext(req, rec)
+		c.SetPath("/:trackId")
+		c.SetParamNames("trackId")
+		c.SetParamValues("1234")
+		if assert.NoError(t, TrackDataHandler(mockFailingTokenRepository{}, mockTrackRepository{})(c)) {
+			assert.Equal(t, http.StatusServiceUnavailable, rec.Code)
+			assert.Equal(t, expectedResponseBody, strings.Trim(rec.Body.String(), "\n"))
+		}
+	})
+
+	t.Run("should fail if it can't read track data", func(t *testing.T) {
+		expectedResponseBody := `{"error":"trackData not available"}`
+		e := echo.New()
+		req := httptest.NewRequest(http.MethodGet, "/1234", nil)
+		rec := httptest.NewRecorder()
+		c := e.NewContext(req, rec)
+		c.SetPath("/:trackId")
+		c.SetParamNames("trackId")
+		c.SetParamValues("1234")
+		if assert.NoError(t, TrackDataHandler(mockTokenRepository{}, mockFailingTrackRepository{})(c)) {
+			assert.Equal(t, http.StatusServiceUnavailable, rec.Code)
+			assert.Equal(t, expectedResponseBody, strings.Trim(rec.Body.String(), "\n"))
+		}
+	})
 }
 
-func TestTrackHandlerFailsIfPathParamIsNotIntParsable(t *testing.T) {
-	expectedResponseBody := `{"error":"trackId not a number"}`
-	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/aba", nil)
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	c.SetPath("/:trackId")
-	c.SetParamNames("trackId")
-	c.SetParamValues("aba")
-	if assert.NoError(t, TrackHandler(mockTokenRepository{}, mockTrackRepository{})(c)) {
-		assert.Equal(t, http.StatusServiceUnavailable, rec.Code)
-		assert.Equal(t, expectedResponseBody, strings.Trim(rec.Body.String(), "\n"))
-	}
-}
+func TestTrackHandler(t *testing.T) {
+	t.Run("should proxy over what the repo returns, with the audio/mpeg content-type", func(t *testing.T) {
+		expectedResponseBody := `yolo`
+		e := echo.New()
+		req := httptest.NewRequest(http.MethodGet, "/1234/stream", nil)
+		rec := httptest.NewRecorder()
+		c := e.NewContext(req, rec)
+		c.SetPath("/:trackId")
+		c.SetParamNames("trackId")
+		c.SetParamValues("1234")
+		cache, _ := lru.New[int, []byte](1)
+		if assert.NoError(t, TrackHandler(cache, mockTokenRepository{}, mockTrackRepository{})(c)) {
+			assert.Equal(t, http.StatusOK, rec.Code)
+			assert.Equal(t, "audio/mpeg", rec.Header().Get("Content-Type"))
+			assert.Equal(t, expectedResponseBody, strings.Trim(rec.Body.String(), "\n"))
+		}
+	})
 
-func TestTrackHandlerFailsIfTokenNotAvailable(t *testing.T) {
-	expectedResponseBody := `{"error":"token not available"}`
-	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/1234", nil)
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	c.SetPath("/:trackId")
-	c.SetParamNames("trackId")
-	c.SetParamValues("1234")
-	if assert.NoError(t, TrackHandler(mockFailingTokenRepository{}, mockTrackRepository{})(c)) {
-		assert.Equal(t, http.StatusServiceUnavailable, rec.Code)
-		assert.Equal(t, expectedResponseBody, strings.Trim(rec.Body.String(), "\n"))
-	}
-}
+	t.Run("should fail if path param is non int castable", func(t *testing.T) {
+		expectedResponseBody := `{"error":"trackId not a number"}`
+		e := echo.New()
+		req := httptest.NewRequest(http.MethodGet, "/aba/stream", nil)
+		rec := httptest.NewRecorder()
+		c := e.NewContext(req, rec)
+		c.SetPath("/:trackId")
+		c.SetParamNames("trackId")
+		c.SetParamValues("aba")
+		cache, _ := lru.New[int, []byte](1)
+		if assert.NoError(t, TrackHandler(cache, mockTokenRepository{}, mockTrackRepository{})(c)) {
+			assert.Equal(t, http.StatusServiceUnavailable, rec.Code)
+			assert.Equal(t, expectedResponseBody, strings.Trim(rec.Body.String(), "\n"))
+		}
+	})
 
-func TestTrackHandlerFailsIfTrackNotAvailable(t *testing.T) {
-	expectedResponseBody := `{"error":"trackData not available"}`
-	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/1234", nil)
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	c.SetPath("/:trackId")
-	c.SetParamNames("trackId")
-	c.SetParamValues("1234")
-	if assert.NoError(t, TrackHandler(mockTokenRepository{}, mockFailingTrackRepository{})(c)) {
-		assert.Equal(t, http.StatusServiceUnavailable, rec.Code)
-		assert.Equal(t, expectedResponseBody, strings.Trim(rec.Body.String(), "\n"))
-	}
-}
+	t.Run("should fail if it can't acquire a token", func(t *testing.T) {
+		expectedResponseBody := `{"error":"token not available"}`
+		e := echo.New()
+		req := httptest.NewRequest(http.MethodGet, "/1234/stream", nil)
+		rec := httptest.NewRecorder()
+		c := e.NewContext(req, rec)
+		c.SetPath("/:trackId")
+		c.SetParamNames("trackId")
+		c.SetParamValues("1234")
+		cache, _ := lru.New[int, []byte](1)
+		if assert.NoError(t, TrackHandler(cache, mockFailingTokenRepository{}, mockTrackRepository{})(c)) {
+			assert.Equal(t, http.StatusServiceUnavailable, rec.Code)
+			assert.Equal(t, expectedResponseBody, strings.Trim(rec.Body.String(), "\n"))
+		}
+	})
 
-func TestStreamTrackHandler(t *testing.T) {
-	expectedResponseBody := `yolo`
-	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/1234/stream", nil)
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	c.SetPath("/:trackId")
-	c.SetParamNames("trackId")
-	c.SetParamValues("1234")
-	cache, _ := lru.New[int, []byte](1)
-	if assert.NoError(t, StreamTrackHandler(cache, mockTokenRepository{}, mockTrackRepository{})(c)) {
-		assert.Equal(t, http.StatusOK, rec.Code)
-		assert.Equal(t, "audio/mpeg", rec.Header().Get("Content-Type"))
-		assert.Equal(t, expectedResponseBody, strings.Trim(rec.Body.String(), "\n"))
-	}
+	t.Run("should fail if it can't read track stream", func(t *testing.T) {
+		expectedResponseBody := `{"error":"track not available"}`
+		e := echo.New()
+		req := httptest.NewRequest(http.MethodGet, "/1234/stream", nil)
+		rec := httptest.NewRecorder()
+		c := e.NewContext(req, rec)
+		c.SetPath("/:trackId")
+		c.SetParamNames("trackId")
+		c.SetParamValues("1234")
+		cache, _ := lru.New[int, []byte](1)
+		if assert.NoError(t, TrackHandler(cache, mockTokenRepository{}, mockFailingTrackRepository{})(c)) {
+			assert.Equal(t, http.StatusServiceUnavailable, rec.Code)
+			assert.Equal(t, expectedResponseBody, strings.Trim(rec.Body.String(), "\n"))
+		}
+	})
 }
 
 func TestStreamTrackHandlerFetchesFromCacheIfAvailable(t *testing.T) {
@@ -113,7 +167,7 @@ func TestStreamTrackHandlerFetchesFromCacheIfAvailable(t *testing.T) {
 		cache: map[int][]byte{},
 		used:  false,
 	}
-	handler := StreamTrackHandler(cache, mockTokenRepository{}, mockTrackRepository{})
+	handler := TrackHandler(cache, mockTokenRepository{}, mockTrackRepository{})
 	if assert.NoError(t, handler(c)) {
 		assert.Equal(t, http.StatusOK, rec.Code)
 		assert.Equal(t, "audio/mpeg", rec.Header().Get("Content-Type"))
@@ -122,54 +176,6 @@ func TestStreamTrackHandlerFetchesFromCacheIfAvailable(t *testing.T) {
 	}
 	if assert.NoError(t, handler(c)) {
 		assert.True(t, cache.used)
-	}
-}
-
-func TestStreamTrackHandlerFailsIfPathParamIsNotIntParsable(t *testing.T) {
-	expectedResponseBody := `{"error":"trackId not a number"}`
-	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/aba/stream", nil)
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	c.SetPath("/:trackId")
-	c.SetParamNames("trackId")
-	c.SetParamValues("aba")
-	cache, _ := lru.New[int, []byte](1)
-	if assert.NoError(t, StreamTrackHandler(cache, mockTokenRepository{}, mockTrackRepository{})(c)) {
-		assert.Equal(t, http.StatusServiceUnavailable, rec.Code)
-		assert.Equal(t, expectedResponseBody, strings.Trim(rec.Body.String(), "\n"))
-	}
-}
-
-func TestStreamTrackHandlerFailsIfTokenNotAvailable(t *testing.T) {
-	expectedResponseBody := `{"error":"token not available"}`
-	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/1234/stream", nil)
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	c.SetPath("/:trackId")
-	c.SetParamNames("trackId")
-	c.SetParamValues("1234")
-	cache, _ := lru.New[int, []byte](1)
-	if assert.NoError(t, StreamTrackHandler(cache, mockFailingTokenRepository{}, mockTrackRepository{})(c)) {
-		assert.Equal(t, http.StatusServiceUnavailable, rec.Code)
-		assert.Equal(t, expectedResponseBody, strings.Trim(rec.Body.String(), "\n"))
-	}
-}
-
-func TestStreamTrackHandlerFailsIfTrackNotAvailable(t *testing.T) {
-	expectedResponseBody := `{"error":"track not available"}`
-	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/1234/stream", nil)
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	c.SetPath("/:trackId")
-	c.SetParamNames("trackId")
-	c.SetParamValues("1234")
-	cache, _ := lru.New[int, []byte](1)
-	if assert.NoError(t, StreamTrackHandler(cache, mockTokenRepository{}, mockFailingTrackRepository{})(c)) {
-		assert.Equal(t, http.StatusServiceUnavailable, rec.Code)
-		assert.Equal(t, expectedResponseBody, strings.Trim(rec.Body.String(), "\n"))
 	}
 }
 

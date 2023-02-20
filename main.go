@@ -20,7 +20,7 @@ func main() {
 		AllowMethods: []string{http.MethodGet},
 	}))
 	e.GET("/health", HealthHandler)
-	e.GET("/:trackId", TrackHandler(httpTokenRepository, httpSoundcloudApi))
-	e.GET("/:trackId/stream", StreamTrackHandler(trackCache, httpTokenRepository, httpSoundcloudApi))
+	e.GET("/:trackId", TrackDataHandler(httpTokenRepository, httpSoundcloudApi))
+	e.GET("/:trackId/stream", TrackHandler(trackCache, httpTokenRepository, httpSoundcloudApi))
 	e.Logger.Fatal(e.Start(":5000"))
 }
