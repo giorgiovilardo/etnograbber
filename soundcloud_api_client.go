@@ -28,7 +28,7 @@ func (s *HttpSoundcloudApi) GetTrackData(t Token, id int) (map[string]interface{
 	req, _ := http.NewRequest(http.MethodGet, trackUrl, nil)
 	req.Header.Set("Authorization", authHeader)
 	res, err := client.Do(req)
-	if err != nil {
+	if err != nil || res.StatusCode != http.StatusOK {
 		return nil, errors.Join(errors.New("failed to get track data"), err)
 	}
 
@@ -53,7 +53,7 @@ func (s *HttpSoundcloudApi) GetTrack(t Token, id int) ([]byte, error) {
 	req, _ := http.NewRequest(http.MethodGet, trackUrl, nil)
 	req.Header.Set("Authorization", authHeader)
 	res, err := client.Do(req)
-	if err != nil {
+	if err != nil || res.StatusCode != http.StatusOK {
 		return nil, errors.Join(errors.New("failed to get track stream"), err)
 	}
 
