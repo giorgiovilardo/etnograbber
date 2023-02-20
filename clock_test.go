@@ -6,21 +6,21 @@ import (
 	"time"
 )
 
-func TestNewBrokenClockProducesAClockThatAlwaysReturnsPassedTime(t *testing.T) {
+func TestNewBrokenClock(t *testing.T) {
 	tests := []struct {
 		name string
 		time time.Time
 	}{
 		{
-			name: "1",
+			name: "should instance a clock that returns passed param 1",
 			time: time.Date(2021, 8, 25, 8, 30, 0, 0, time.UTC),
 		},
 		{
-			name: "2",
+			name: "should instance a clock that returns passed param 2",
 			time: time.Date(1983, 10, 9, 8, 30, 0, 0, time.UTC),
 		},
 		{
-			name: "3",
+			name: "should instance a clock that returns passed param 3",
 			time: time.Date(1983, 10, 9, 8, 30, 0, 0, time.UTC),
 		},
 	}
@@ -32,8 +32,10 @@ func TestNewBrokenClockProducesAClockThatAlwaysReturnsPassedTime(t *testing.T) {
 	}
 }
 
-func TestNewRealClockProducesATime(t *testing.T) {
-	clock := NewRealClock()
-	assert.Implements(t, (*Clock)(nil), clock)
-	assert.IsType(t, time.Time{}, clock.Now())
+func TestNewRealClock(t *testing.T) {
+	t.Run("should produce a real time", func(t *testing.T) {
+		clock := NewRealClock()
+		assert.Implements(t, (*Clock)(nil), clock)
+		assert.IsType(t, time.Time{}, clock.Now())
+	})
 }
