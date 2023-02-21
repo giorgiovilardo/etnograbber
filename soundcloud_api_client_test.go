@@ -12,7 +12,7 @@ func TestHttpSoundcloudApi_Renew(t *testing.T) {
 	t.Run("should return the raw response", func(t *testing.T) {
 		expected := []byte(`{"micio":"miao"}`)
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.WriteHeader(200)
+			w.WriteHeader(AuthApiSuccessStatus)
 			_, _ = w.Write(expected)
 		}))
 		defer server.Close()
@@ -30,7 +30,7 @@ func TestHttpSoundcloudApi_Renew(t *testing.T) {
 			assert.Equal(t, "reftoken", r.PostFormValue("refresh_token"))
 			assert.Equal(t, "application/x-www-form-urlencoded", r.Header.Get("Content-Type"))
 			assert.Equal(t, http.MethodPost, r.Method)
-			w.WriteHeader(200)
+			w.WriteHeader(AuthApiSuccessStatus)
 		}))
 		defer server.Close()
 		conf := Config{BaseAuthUrl: server.URL, ClientId: "micio", ClientSecret: "mao"}
@@ -51,7 +51,7 @@ func TestHttpSoundcloudApi_Auth(t *testing.T) {
 	t.Run("should fetch the token from base auth url", func(t *testing.T) {
 		expected := []byte(`{"ola":"ola"}`)
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.WriteHeader(200)
+			w.WriteHeader(AuthApiSuccessStatus)
 			_, _ = w.Write(expected)
 		}))
 		defer server.Close()
@@ -64,7 +64,7 @@ func TestHttpSoundcloudApi_Auth(t *testing.T) {
 	t.Run("should fetch the token from fallback url if base has network error", func(t *testing.T) {
 		expected := []byte(`{"ola":"ola"}`)
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.WriteHeader(200)
+			w.WriteHeader(AuthApiSuccessStatus)
 			_, _ = w.Write(expected)
 		}))
 		defer server.Close()
@@ -106,7 +106,7 @@ func TestHttpSoundcloudApi_Auth(t *testing.T) {
 			assert.Equal(t, "mao", r.PostFormValue("client_secret"))
 			assert.Equal(t, "application/x-www-form-urlencoded", r.Header.Get("Content-Type"))
 			assert.Equal(t, http.MethodPost, r.Method)
-			w.WriteHeader(200)
+			w.WriteHeader(AuthApiSuccessStatus)
 		}))
 		defer server.Close()
 		conf := Config{BaseAuthUrl: server.URL, ClientId: "micio", ClientSecret: "mao"}
@@ -121,7 +121,7 @@ func TestHttpSoundcloudApi_Auth(t *testing.T) {
 			assert.NotEqual(t, "mao", r.PostFormValue("client_secret"))
 			assert.NotEqual(t, "application/x-www-form-urlencoded", r.Header.Get("Content-Type"))
 			assert.Equal(t, http.MethodGet, r.Method)
-			w.WriteHeader(200)
+			w.WriteHeader(AuthApiSuccessStatus)
 		}))
 		defer server.Close()
 		conf := Config{FallbackAuthUrl: server.URL, ClientId: "micio", ClientSecret: "mao"}
@@ -158,7 +158,7 @@ func TestHttpSoundcloudApi_GetTrackData(t *testing.T) {
 			assert.Equal(t, "OAuth faketoken", r.Header.Get("Authorization"))
 			assert.Equal(t, http.MethodGet, r.Method)
 			assert.Equal(t, fmt.Sprintf("/%d", id), r.URL.RequestURI())
-			w.WriteHeader(http.StatusOK)
+			w.WriteHeader(AuthApiSuccessStatus)
 			_, _ = w.Write([]byte(`{"fake":"result"}`))
 		}))
 		defer server.Close()
@@ -194,7 +194,7 @@ func TestHttpSoundcloudApi_GetTrack(t *testing.T) {
 			assert.Equal(t, "OAuth faketoken", r.Header.Get("Authorization"))
 			assert.Equal(t, http.MethodGet, r.Method)
 			assert.Equal(t, fmt.Sprintf("/%d/stream", id), r.URL.RequestURI())
-			w.WriteHeader(http.StatusOK)
+			w.WriteHeader(AuthApiSuccessStatus)
 			_, _ = w.Write([]byte(`{"fake":"result"}`))
 		}))
 		defer server.Close()
