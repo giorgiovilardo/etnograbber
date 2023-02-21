@@ -33,52 +33,48 @@ func TestHttpTokenRepository_GetToken(t *testing.T) {
 	})
 
 	t.Run("should return the same error from the api if auth fails", func(t *testing.T) {
-		_, err := NewHttpTokenRepository(clock, mockFailingSoundcloudApi{}).GetToken()
+		_, err := NewHttpTokenRepository(clock, mockSoundcloudApi{wantErr: true, errMsg: "auth_fail"}).GetToken()
 		assert.Equal(t, "auth_fail", err.Error())
 	})
 
 	t.Run("should return the same error from the api if renew fails", func(t *testing.T) {
-		_, err := repoWith(mockFailingSoundcloudApi{}).GetToken()
+		_, err := repoWith(mockSoundcloudApi{wantErr: true, errMsg: "renew_fail"}).GetToken()
 		assert.Equal(t, "renew_fail", err.Error())
 	})
 
 	t.Run("should fail if auth can't deserialize json into token", func(t *testing.T) {
-		_, err := NewHttpTokenRepository(clock, mockJsonFailingSoundcloudApi{}).GetToken()
+		_, err := NewHttpTokenRepository(clock, mockSoundcloudApi{thatReturns: []byte(`12345`)}).GetToken()
 		assert.Equal(t, "json: cannot unmarshal number into Go value of type main.Token", err.Error())
 	})
 
 	t.Run("should fail if renew can't deserialize json into token", func(t *testing.T) {
-		_, err := repoWith(mockJsonFailingSoundcloudApi{}).GetToken()
+		_, err := repoWith(mockSoundcloudApi{thatReturns: []byte(`12345`)}).GetToken()
 		assert.Equal(t, "json: cannot unmarshal number into Go value of type main.Token", err.Error())
 	})
 }
 
-type mockSoundcloudApi struct{}
+type mockSoundcloudApi struct {
+	thatReturns []byte
+	wantErr     bool
+	errMsg      string
+}
 
 func (m mockSoundcloudApi) Auth() ([]byte, error) {
+	if m.wantErr {
+		return nil, errors.New(m.errMsg)
+	}
+	if m.thatReturns != nil {
+		return m.thatReturns, nil
+	}
 	return []byte(`{"access_token":"miao","expires_in":3599,"refresh_token":"bau","scope":"","token_type":"bearer"}`), nil
 }
 
 func (m mockSoundcloudApi) Renew(_ Token) ([]byte, error) {
+	if m.wantErr {
+		return nil, errors.New(m.errMsg)
+	}
+	if m.thatReturns != nil {
+		return m.thatReturns, nil
+	}
 	return []byte(`{"access_token":"miao_renewed","expires_in":3599,"refresh_token":"bau","scope":"","token_type":"bearer"}`), nil
-}
-
-type mockFailingSoundcloudApi struct{}
-
-func (m mockFailingSoundcloudApi) Auth() ([]byte, error) {
-	return nil, errors.New("auth_fail")
-}
-
-func (m mockFailingSoundcloudApi) Renew(_ Token) ([]byte, error) {
-	return nil, errors.New("renew_fail")
-}
-
-type mockJsonFailingSoundcloudApi struct{}
-
-func (m mockJsonFailingSoundcloudApi) Auth() ([]byte, error) {
-	return []byte(`12312`), nil
-}
-
-func (m mockJsonFailingSoundcloudApi) Renew(_ Token) ([]byte, error) {
-	return []byte(`12312`), nil
 }
