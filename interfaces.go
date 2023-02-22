@@ -1,13 +1,5 @@
 package main
 
-import (
-	"time"
-)
-
-type Clock interface {
-	Now() time.Time
-}
-
 type SoundcloudApi interface {
 	Auth() ([]byte, error)
 	Renew(t Token) ([]byte, error)
