@@ -15,10 +15,7 @@ func main() {
 	trackCache, _ := lru.New[int, []byte](30)
 	e := echo.New()
 	e.HideBanner = true
-	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: config.AllowedOrigins,
-		AllowMethods: []string{http.MethodGet},
-	}))
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{AllowOrigins: config.AllowedOrigins, AllowMethods: []string{http.MethodGet}}))
 	e.GET("/health", HealthHandler)
 	e.GET("/:trackId", TrackDataHandler(httpTokenRepository, httpSoundcloudApi))
 	e.GET("/:trackId/stream", TrackHandler(trackCache, httpTokenRepository, httpSoundcloudApi))
