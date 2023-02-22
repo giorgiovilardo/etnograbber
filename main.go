@@ -12,12 +12,14 @@ func main() {
 	clock := NewRealClock()
 	httpSoundcloudApi := NewHttpSoundcloudApi(config)
 	httpTokenRepository := NewHttpTokenRepository(clock, httpSoundcloudApi)
+	httpTrackDataService := NewHttpTrackDataService(httpTokenRepository, httpSoundcloudApi)
 	trackCache, _ := lru.New[int, []byte](30)
+	httpCachedTrackService := NewHttpCachedTrackService(trackCache, httpTokenRepository, httpSoundcloudApi)
 	e := echo.New()
 	e.HideBanner = true
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{AllowOrigins: config.AllowedOrigins, AllowMethods: []string{http.MethodGet}}))
 	e.GET("/health", HealthHandler)
-	e.GET("/:trackId", TrackDataHandler(httpTokenRepository, httpSoundcloudApi))
-	e.GET("/:trackId/stream", TrackHandler(trackCache, httpTokenRepository, httpSoundcloudApi))
+	e.GET("/:trackId", TrackDataHandler(httpTrackDataService))
+	e.GET("/:trackId/stream", TrackHandler(httpCachedTrackService))
 	e.Logger.Fatal(e.Start(":5000"))
 }

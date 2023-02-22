@@ -13,51 +13,35 @@ func HealthHandler(c echo.Context) error {
 	})
 }
 
-func TrackDataHandler(tokenRep TokenRepository, trackRep TrackRepository) func(c echo.Context) error {
+func TrackDataHandler(s TrackDataService) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		trackId, err := strconv.ParseInt(c.Param("trackId"), 10, 64)
+		trackId, err := strconv.Atoi(c.Param("trackId"))
 		if err != nil {
-			return trackIdNotNumberError(c)
+			return apiError(c, trackIdNotANumber)
 		}
 
-		token, err := tokenRep.GetToken()
+		track, err := s.GetTrackData(trackId)
 		if err != nil {
-			return tokenNotAvailableError(c)
-		}
-
-		track, err := trackRep.GetTrackData(token, int(trackId))
-		if err != nil {
-			return apiError(c, trackDataNotAvailable)
+			return apiError(c, err.Error())
 		}
 
 		return c.JSON(http.StatusOK, track)
 	}
 }
 
-func TrackHandler(cache TrackCache, tokenRep TokenRepository, trackRep TrackRepository) func(c echo.Context) error {
+func TrackHandler(s TrackService) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		trackId, err := strconv.Atoi(c.Param("trackId"))
 		if err != nil {
-			return trackIdNotNumberError(c)
+			return apiError(c, trackIdNotANumber)
 		}
 
-		if cache.Contains(trackId) {
-			trackReader, _ := cache.Get(trackId)
-			return c.Stream(http.StatusOK, "audio/mpeg", bytes.NewReader(trackReader))
-		}
-
-		token, err := tokenRep.GetToken()
+		track, err := s.GetTrack(trackId)
 		if err != nil {
-			return tokenNotAvailableError(c)
+			return apiError(c, err.Error())
 		}
 
-		trackReader, err := trackRep.GetTrack(token, trackId)
-		if err != nil {
-			return apiError(c, trackNotAvailable)
-		}
-
-		cache.Add(trackId, trackReader)
-		return c.Stream(http.StatusOK, "audio/mpeg", bytes.NewReader(trackReader))
+		return c.Stream(http.StatusOK, "audio/mpeg", bytes.NewReader(track))
 	}
 }
 
@@ -65,15 +49,4 @@ func apiError(c echo.Context, message string) error {
 	return c.JSON(http.StatusServiceUnavailable, map[string]string{"error": message})
 }
 
-func tokenNotAvailableError(c echo.Context) error {
-	return apiError(c, tokenNotAvailable)
-}
-
-func trackIdNotNumberError(c echo.Context) error {
-	return apiError(c, trackIdNotANumber)
-}
-
-const tokenNotAvailable = "token not available"
 const trackIdNotANumber = "trackId not a number"
-const trackDataNotAvailable = "trackData not available"
-const trackNotAvailable = "track not available"
