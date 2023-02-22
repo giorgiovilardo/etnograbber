@@ -16,6 +16,17 @@ type TrackCache interface {
 }
 
 type TrackRepository interface {
-	GetTrackData(t Token, id int) (map[string]interface{}, error)
 	GetTrack(t Token, id int) ([]byte, error)
+}
+
+type TrackDataRepository interface {
+	GetTrackData(t Token, id int) (map[string]interface{}, error)
+}
+
+type TrackDataService interface {
+	GetTrackData(id int) (map[string]interface{}, error)
+}
+
+type TrackService interface {
+	GetTrack(id int) ([]byte, error)
 }
