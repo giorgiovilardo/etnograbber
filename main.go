@@ -21,5 +21,5 @@ func main() {
 	e.GET("/health", HealthHandler)
 	e.GET("/:trackId", TrackDataHandler(httpTrackDataService))
 	e.GET("/:trackId/stream", TrackHandler(httpCachedTrackService))
-	e.Logger.Fatal(e.Start(":5000"))
+	e.Logger.Fatal(e.Start(config.Address))
 }
