@@ -15,6 +15,7 @@ type Config struct {
 	ClientSecret    string   `mapstructure:"client_secret" validate:"required"`
 	FallbackAuthUrl string   `mapstructure:"token_generator_fallback" validate:"required,url"`
 	AllowedOrigins  []string `mapstructure:"allowed_origins" validate:"required"`
+	CacheSize       int      `mapstructure:"cache_size" validate:"required,gte=1,lte=30"`
 }
 
 func GetConfig() (c Config) {

@@ -4,3 +4,4 @@ client_id = ''
 client_secret = ''
 token_generator_fallback = ''
 allowed_origins = ['*']
+cache_size = 30

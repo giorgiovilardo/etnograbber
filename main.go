@@ -13,7 +13,7 @@ func main() {
 	httpSoundcloudApi := NewHttpSoundcloudApi(config)
 	httpTokenRepository := NewHttpTokenRepository(clock, httpSoundcloudApi)
 	httpTrackDataService := NewHttpTrackDataService(httpTokenRepository, httpSoundcloudApi)
-	trackCache, _ := lru.New[int, []byte](30)
+	trackCache, _ := lru.New[int, []byte](config.CacheSize)
 	httpCachedTrackService := NewHttpCachedTrackService(trackCache, httpTokenRepository, httpSoundcloudApi)
 	e := echo.New()
 	e.HideBanner = true
