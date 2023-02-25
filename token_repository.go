@@ -1,6 +1,7 @@
 package main
 
 import (
+	"sync"
 	"time"
 )
 
@@ -9,6 +10,7 @@ type HttpTokenRepository struct {
 	sc           SoundcloudApi
 	initialized  bool
 	clock        Clock
+	Mu           sync.Mutex
 }
 
 func NewHttpTokenRepository(c Clock, sc SoundcloudApi) *HttpTokenRepository {
@@ -20,6 +22,8 @@ func NewHttpTokenRepository(c Clock, sc SoundcloudApi) *HttpTokenRepository {
 }
 
 func (s *HttpTokenRepository) GetToken() (Token, error) {
+	s.Mu.Lock()
+	defer s.Mu.Unlock()
 	if !s.initialized {
 		token, err := newToken(s.sc, s.clock.Now())
 		if err != nil {
