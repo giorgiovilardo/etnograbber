@@ -24,3 +24,5 @@ jobs:
           go-version-file: 'go.mod'
           cache: true
       - run: go test -cover
+      - run: go test -race
+      - run: go vet
