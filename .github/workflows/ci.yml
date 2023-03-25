@@ -21,6 +21,5 @@ jobs:
       - uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
-      - run: go test -cover
-      - run: go test -race
+      - run: go test -cover -race
       - run: go vet
