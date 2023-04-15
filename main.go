@@ -1,6 +1,7 @@
 package main
 
 import (
+	clockLib "github.com/giorgiovilardo/etnograbber/clock"
 	lru "github.com/hashicorp/golang-lru/v2"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -9,7 +10,7 @@ import (
 
 func main() {
 	config := GetConfig()
-	clock := NewRealClock()
+	clock := clockLib.NewRealClock()
 	httpSoundcloudApi := NewHttpSoundcloudApi(config)
 	httpTokenRepository := NewHttpTokenRepository(clock, httpSoundcloudApi)
 	httpTrackDataService := NewHttpTrackDataService(httpTokenRepository, httpSoundcloudApi)

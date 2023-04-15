@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/giorgiovilardo/etnograbber/clock"
 	"sync"
 	"time"
 )
@@ -9,11 +10,11 @@ type HttpTokenRepository struct {
 	currentToken Token
 	sc           SoundcloudApi
 	initialized  bool
-	clock        Clock
+	clock        clock.Clock
 	Mu           sync.Mutex
 }
 
-func NewHttpTokenRepository(c Clock, sc SoundcloudApi) *HttpTokenRepository {
+func NewHttpTokenRepository(c clock.Clock, sc SoundcloudApi) *HttpTokenRepository {
 	return &HttpTokenRepository{
 		initialized: false,
 		clock:       c,

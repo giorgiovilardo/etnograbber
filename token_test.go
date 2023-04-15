@@ -1,13 +1,14 @@
 package main
 
 import (
+	clockLib "github.com/giorgiovilardo/etnograbber/clock"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
 )
 
 func TestToken_IsExpired(t *testing.T) {
-	clock := NewBrokenClock(time.Date(2021, 8, 25, 8, 30, 0, 0, time.UTC))
+	clock := clockLib.NewBrokenClock(time.Date(2021, 8, 25, 8, 30, 0, 0, time.UTC))
 
 	t.Run("should consider expired a token with an expiry in the past", func(t *testing.T) {
 		pastToken := Token{ExpiresAt: time.Date(2020, 8, 25, 8, 30, 0, 0, time.UTC)}
