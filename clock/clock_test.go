@@ -1,6 +1,7 @@
-package main
+package clock_test
 
 import (
+	clockLib "github.com/giorgiovilardo/etnograbber/clock"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
@@ -26,7 +27,7 @@ func TestNewBrokenClock(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			clock := NewBrokenClock(tt.time)
+			clock := clockLib.NewBrokenClock(tt.time)
 			assert.Equal(t, tt.time, clock.Now())
 		})
 	}
@@ -34,8 +35,8 @@ func TestNewBrokenClock(t *testing.T) {
 
 func TestNewRealClock(t *testing.T) {
 	t.Run("should produce a real time", func(t *testing.T) {
-		clock := NewRealClock()
-		assert.Implements(t, (*Clock)(nil), clock)
+		clock := clockLib.NewRealClock()
+		assert.Implements(t, (*clockLib.Clock)(nil), clock)
 		assert.IsType(t, time.Time{}, clock.Now())
 	})
 }

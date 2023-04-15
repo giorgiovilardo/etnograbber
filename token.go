@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"github.com/giorgiovilardo/etnograbber/clock"
 	"github.com/go-playground/validator/v10"
 	"time"
 )
@@ -15,7 +16,7 @@ type Token struct {
 	ExpiresAt    time.Time
 }
 
-func (t Token) IsExpired(c Clock) bool {
+func (t Token) IsExpired(c clock.Clock) bool {
 	return t.ExpiresAt.Before(c.Now())
 }
 

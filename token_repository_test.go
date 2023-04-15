@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	clockLib "github.com/giorgiovilardo/etnograbber/clock"
 	"github.com/stretchr/testify/assert"
 	"sync"
 	"testing"
@@ -9,7 +10,7 @@ import (
 )
 
 func TestHttpTokenRepository_GetToken(t *testing.T) {
-	clock := NewBrokenClock(time.Date(2021, 8, 25, 8, 30, 0, 0, time.UTC))
+	clock := clockLib.NewBrokenClock(time.Date(2021, 8, 25, 8, 30, 0, 0, time.UTC))
 	repoWithOldToken := func(api SoundcloudApi) *HttpTokenRepository {
 		return &HttpTokenRepository{
 			currentToken: Token{ExpiresAt: time.Date(1999, 1, 1, 1, 1, 1, 1, time.UTC)},
